@@ -10,5 +10,5 @@ docker run -v "//c/Users/Perennial/Downloads/files:/app/files" -it --rm ff5b0f38
 docker command to generate pdf from html file
 
 ```
-docker run -v "/c/Program Files/work/htmltopdf:/app" -v "//app:/c/Program Files/work/htmltopdf" -it --rm ff5b0f38fb11 go run main.go
+docker run -v "//c/Users/Perennial/Downloads/files:/app/files" -it --rm ff5b0f38fb11 go run main.go
 ```
