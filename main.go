@@ -67,11 +67,11 @@ func main() {
 
 	fmt.Println("Done")
 	// Output: Done*/
-	cacher := redis.NewCacher(redis.Config{Addr: "127.0.0.1:9096"})
+	cacher := redis.NewCacher(redis.Config{Addr: "172.19.0.2:6379"})
 	r := mux.NewRouter()
 	r.HandleFunc("/upload", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("File Upload Endpoint Hit")
-		err := r.ParseMultipartForm(10240)
+		err := r.ParseMultipartForm(102400)
 		if err != nil {
 			log.Print(err.Error())
 			return
@@ -101,7 +101,7 @@ func main() {
 		log.Print(handler.Filename)
 		err = cacher.Set(handler.Filename, jb, 0)
 		if err != nil {
-			log.Printf("failed writing to file: %s", err)
+			log.Printf("failed to save cache: %s", err)
 			return
 		}
 		log.Println("Successfully Uploaded File\n")
@@ -120,6 +120,7 @@ func main() {
 			log.Printf("failed writing to file: %s", err)
 			return
 		}
+		log.Println("saved template file")
 		var class Class
 		// defining struct instance
 		std1 := Student{"A", 90, "1"}
@@ -130,7 +131,6 @@ func main() {
 		class = append(class, std4, std2, std3, std1, std5)
 		//os.Setenv("list", "")
 		//list := os.Getenv("list")
-
 		t, err := template.ParseFiles("uploads/" + v + ".html")
 		if err != nil {
 			log.Print(err)
@@ -144,32 +144,28 @@ func main() {
 		if err != nil {
 			log.Print(err)
 		}
-		/* standard output to print merged data
+		log.Print("Updated Template")
+		//standard output to print merged data
 		err = t.Execute(os.Stdout, class)
 		if err != nil {
 			log.Print(err)
-		}*/
-		w.Header().Set("Content-Disposition", "attachment; filename="+v)
+		}
+		w.Header().Set("Content-Disposition", "attachment; filename="+v+".html")
 		w.Header().Set("Content-Type", "application/octet-stream")
 		// Create PDF document in internal buffer
-		pdfgFromJSON, err := wkhtmltopdf.NewPDFGeneratorFromJSON(bytes.NewReader(b))
+		pdfgFromJSON, err := wkhtmltopdf.NewPDFGeneratorFromJSON(f)
 		if err != nil {
 			log.Fatal(err)
 		}
-		//pdfgFromJSON.SetOutput()
+		pdfgFromJSON.SetOutput(w)
 		err = pdfgFromJSON.Create()
 		if err != nil {
 			log.Fatal(err)
 		}
-
 		// Write buffer contents to file on disk
-		err = pdfgFromJSON.WriteFile("./simplesample.pdf")
+		err = pdfgFromJSON.WriteFile("simplesample.pdf")
 		if err != nil {
 			log.Fatal(err)
-		}
-		if _, err := w.Write(b); err != nil {
-			log.Println("unable to write image.")
-			return
 		}
 	}).Methods("POST")
 	http.Handle("/", r)
